@@ -1,0 +1,99 @@
+﻿@{
+    ViewBag.Title = "Play";
+}
+
+<h2>Play</h2>
+
+<h3>
+    X: <span data-bind="text: playerX"></span>
+</h3>
+<h3>
+    O: <span data-bind="text: playerO"></span>
+</h3>
+
+<div id="error" class="message-error">
+</div>
+
+<div id="game" data-bind="foreach: cells">
+    <div class="cf" data-bind="foreach: $data">
+        <div class="cell"
+            data-bind="text: $data, 
+            click: $root.cellClicked,
+            attr:{'data-x': $parentContext.$index, 'data-y': $index}">
+        </div>
+    </div>
+</div>
+
+<div data-bind="visible: winner">
+    <h2>And the winner is <span data-bind="text: winner"></span>
+    </h2>
+</div>
+
+<div data-bind="visible: !winner()">
+    <button data-bind="click: reload">Reload</button>
+</div>
+
+
+@section scripts
+{
+    <script src="/Scripts/knockout-2.2.0.js"></script>
+    <script>
+        $(function() {
+            var dataUrl = window.location.href.replace("/Play/", "/Game/");
+            var isTurn = false;
+
+            var vm = {
+                cells: ko.observableArray([]),
+                playerX: ko.observable(),
+                playerO: ko.observable(),
+                move: ko.observable(),
+                winner: ko.observable(),
+                isTurn: ko.observable(),
+                cellClicked: function (data, event) {
+                    if (isTurn) {
+                        var el = $(event.srcElement || event.target);
+
+                        $.post(dataUrl, {
+                            Move: vm.move,
+                            MoveX: el.data("x"),
+                            MoveY: el.data("y")
+                        }).then(function(game) {
+                            updateViewModel(game);
+                        }, function(err) {
+                            $("#error").text(err.responseText);
+                        });
+                    }
+                },
+                reload: loadGame
+            };
+
+            function loadGame() {
+                $.getJSON(dataUrl).then(function(game) {
+                    updateViewModel(game);
+                });
+            }
+
+            function updateViewModel(game) {
+                vm.cells(game.Cells);
+                vm.playerX(game.PlayerX);
+                vm.playerO(game.PlayerO);
+                vm.move(game.Move);
+                if (game.CurrentUserName === $.cookie("userName")) {
+                    $("#game").addClass("my-turn");
+                    isTurn = true;
+                } else {
+                    $("#game").removeClass("my-turn");
+                    isTurn = false;
+                }
+                vm.isTurn();
+                if (game.Winner) {
+                    vm.winner(game["Player" + game.Winner]);
+                }
+            }
+
+            ko.applyBindings(vm);
+
+            loadGame();
+        });
+    </script>
+}

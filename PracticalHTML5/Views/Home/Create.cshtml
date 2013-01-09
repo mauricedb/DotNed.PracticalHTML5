@@ -1,0 +1,52 @@
+﻿@model HomeCreateRequestViewModel
+
+@{
+    ViewBag.Title = "Create";
+}
+
+<h2>Create a new game</h2>
+
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>TicTacToe</legend>
+
+        <div class="editor-label">
+            Name:
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.PlayerO)
+            @Html.ValidationMessageFor(model => model.PlayerO)
+        </div>
+
+        <div class="editor-label">
+            Started At:
+        </div>
+        <div class="editor-field">
+            @Html.TextBoxFor(m => m.StartedAt, new { type = "text" })
+            @Html.ValidationMessageFor(model => model.StartedAt)
+        </div>
+
+@*        <div class="editor-label">
+            Size:
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(m=>m.Size, Model.Sizes)
+            @Html.ValidationMessageFor(model => model.Size)
+        </div>*@
+
+        <p>
+            <input type="submit" value="Create" />
+        </p>
+    </fieldset>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

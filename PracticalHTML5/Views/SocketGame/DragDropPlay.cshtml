@@ -1,0 +1,140 @@
+﻿@{
+    ViewBag.Title = "Play";
+}
+
+<h2>Play</h2>
+
+<h3 id="playerX">X: <span data-bind="text: playerX"></span>
+</h3>
+<h3 id="playerO">O: <span data-bind="text: playerO"></span>
+</h3>
+
+<div id="error" class="message-error">
+</div>
+
+<div data-bind="text: move" class="drag-move"></div>
+
+
+<div id="game" data-bind="foreach: cells">
+    <div class="cf" data-bind="foreach: $data">
+        <div class="cell"
+            data-bind="text: $data, 
+            click: $root.cellClicked,
+            attr:{'data-x': $parentContext.$index, 'data-y': $index}">
+        </div>
+    </div>
+</div>
+
+<div data-bind="visible: winner">
+    <h2>And the winner is <span data-bind="text: winner"></span>
+    </h2>
+</div>
+
+<div data-bind="visible: draw">
+    <h2>Draw</h2>
+</div>
+
+
+@section scripts
+{
+    @Scripts.Render("~/bundles/jqueryui")
+    <script src="/Scripts/jquery.ui.touch-punch.min.js"></script>
+    <script src="/Scripts/jquery.signalR-1.0.0-rc1.js"></script>
+    <script src="/signalr/hubs"></script>
+    <script src="/Scripts/knockout-2.2.0.js"></script>
+    <script>
+        $(function () {
+            var isTurn = false;
+            var hub = $.connection.ticTacToe;
+            var id = window.location.href.split("/").pop();
+            var userName = $.cookie("userName");
+
+            var vm = {
+                cells: ko.observableArray([]),
+                playerX: ko.observable(),
+                playerO: ko.observable(),
+                move: ko.observable(),
+                winner: ko.observable(),
+                draw: ko.observable(),
+                cellClicked: cellClicked
+            };
+
+            function makeMove(el) {
+                if (isTurn) {
+                    $("#error").text("");
+
+                    hub.server.makeMove(id, {
+                        Move: vm.move(),
+                        MoveX: el.data("x"),
+                        MoveY: el.data("y")
+                    }).then(function (game) {
+                        updateViewModel(game);
+                    }, function (err) {
+                        $("#error").text(err);
+                    });
+                }
+            }
+
+            function cellClicked(data, event) {
+                var el = $(event.srcElement || event.target);
+                makeMove(el);
+            }
+
+            function bindDrop() {
+                $(".cell").droppable({
+                    drop: function (event, ui) {
+                        var el = $(this);
+
+                        makeMove(el);
+                        ui.draggable.css({ top: 0, left: 0 });
+                    }
+                });
+            }
+
+            function loadGame() {
+                hub.server.loadGame(id).then(function (game) {
+                    updateViewModel(game);
+
+                    if (game.PlayerX === userName) {
+                        $("#playerX").addClass("current_player");
+                    } else if (game.PlayerO === userName) {
+                        $("#playerO").addClass("current_player");
+                    }
+                });
+            }
+
+            function updateViewModel(game) {
+                vm.cells(game.Cells);
+                vm.playerX(game.PlayerX);
+                vm.playerO(game.PlayerO);
+                vm.move(game.Move);
+                if (game.Winner) {
+                    vm.winner(game["Player" + game.Winner]);
+                }
+                if (game.Draw) {
+                    vm.draw(true);
+                }
+
+                isTurn = game.CurrentUserName === userName;
+                if (isTurn) {
+                    $("body").addClass("my-turn");
+                } else {
+                    $("body").removeClass("my-turn");
+                }
+                bindDrop();
+            }
+
+            ko.applyBindings(vm);
+
+            hub.client.moveMade = function (game) {
+                if (game.Id == id) {
+                    updateViewModel(game);
+                }
+            };
+
+            $.connection.hub.start().done(loadGame);
+
+            $(".drag-move").draggable().css("-ms-touch-action", "none");
+        });
+    </script>
+}

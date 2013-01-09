@@ -1,0 +1,37 @@
+﻿@model dynamic
+
+@{
+    ViewBag.Title = "Accept";
+}
+
+<h2>Accept</h2>
+
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>TicTacToe</legend>
+
+
+        <div class="editor-label">
+            Name:
+        </div>
+        <div class="editor-field">
+            @Html.Editor("PlayerX")
+            @Html.ValidationMessage("PlayerX")
+        </div>
+
+        <p>
+            <input type="submit" value="Accept" />
+        </p>
+    </fieldset>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

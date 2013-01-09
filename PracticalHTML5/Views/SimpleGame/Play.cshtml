@@ -1,0 +1,73 @@
+﻿@model PracticalHTML5.ViewModels.PlayRequestViewModel
+
+@{
+    ViewBag.Title = "Play";
+    var game = Model.Game;
+}
+
+
+<h2>Play</h2>
+
+
+<h3 id="playerX">
+    X: @game.PlayerX
+</h3>
+<h3 id="playerO">
+    O: @game.PlayerO
+</h3>
+
+<div class="message-error">
+    @Model.ErrorMessage
+</div>
+<div id="game">
+    <div class="cf">
+        <div class="cell" data-x="0" data-y="0">@game.Cells[0][0]</div>
+        <div class="cell" data-x="0" data-y="1">@game.Cells[0][1]</div>
+        <div class="cell" data-x="0" data-y="2">@game.Cells[0][2]</div>
+    </div>
+    <div class="cf">
+        <div class="cell" data-x="1" data-y="0">@game.Cells[1][0]</div>
+        <div class="cell" data-x="1" data-y="1">@game.Cells[1][1]</div>
+        <div class="cell" data-x="1" data-y="2">@game.Cells[1][2]</div>
+    </div>
+    <div class="cf">
+        <div class="cell" data-x="2" data-y="0">@game.Cells[2][0]</div>
+        <div class="cell" data-x="2" data-y="1">@game.Cells[2][1]</div>
+        <div class="cell" data-x="2" data-y="2">@game.Cells[2][2]</div>
+    </div>
+</div>
+@if (!string.IsNullOrEmpty(game.Winner))
+{
+    <h2>And the winner is @game.Winner
+    </h2>
+}
+
+@using (Html.BeginForm())
+{
+    <input type="hidden" id="move" name="move" value="@game.Move"/>    
+    <input type="hidden" id="currentUserName" name="currentUserName" value="@game.CurrentUserName"/>    
+    <input type="hidden" id="moveX" name="moveX" />    
+    <input type="hidden" id="moveY" name="moveY" />    
+    <input type="submit" id="submit" value="Play" style="display: none;" />    
+}
+
+@section scripts
+{
+    @if (Model.IsTurn)
+    {
+        <script>
+            $(function () {
+                $("#game").addClass("my-turn");
+
+                $(".cell").click(function () {
+                    var el = $(this);
+
+                    $("#moveX").val(el.data("x"));
+                    $("#moveY").val(el.data("y"));
+                    el.text($("#move").val());
+                    $("#submit").fadeIn();
+                });
+            });
+        </script>
+    }
+}

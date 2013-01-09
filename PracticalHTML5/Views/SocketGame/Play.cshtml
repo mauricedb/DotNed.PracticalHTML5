@@ -1,0 +1,117 @@
+﻿@{
+    ViewBag.Title = "Play";
+}
+
+<h2>Play</h2>
+
+<h3 id="playerX">X: <span data-bind="text: playerX"></span>
+</h3>
+<h3 id="playerO">O: <span data-bind="text: playerO"></span>
+</h3>
+
+<div id="error" class="message-error">
+</div>
+
+<div id="game" data-bind="foreach: cells">
+    <div class="cf" data-bind="foreach: $data">
+        <div class="cell"
+            data-bind="text: $data, 
+            click: $root.cellClicked,
+            attr:{'data-x': $parentContext.$index, 'data-y': $index}">
+        </div>
+    </div>
+</div>
+
+<div data-bind="visible: winner">
+    <h2>And the winner is <span data-bind="text: winner"></span>
+    </h2>
+</div>
+
+<div data-bind="visible: draw">
+    <h2>Draw</h2>
+</div>
+
+
+@section scripts
+{
+    <script src="/Scripts/jquery.signalR-1.0.0-rc1.js"></script>
+    <script src="/signalr/hubs"></script>
+    <script src="/Scripts/knockout-2.2.0.js"></script>
+    <script>
+        $(function() {
+            var isTurn = false;
+            var hub = $.connection.ticTacToe;
+            var id = window.location.href.split("/").pop();
+            var userName = $.cookie("userName");
+            var move = "";
+
+            var vm = {
+                cells: ko.observableArray([]),
+                playerX: ko.observable(),
+                playerO: ko.observable(),
+                winner: ko.observable(),
+                draw: ko.observable(),
+                cellClicked: cellClicked
+            };
+
+            function cellClicked(data, event) {
+                if (isTurn) {
+                    $("#error").text("");
+                    var el = $(event.srcElement || event.target);
+
+                    hub.server.makeMove(id, {
+                        Move: move,
+                        MoveX: el.data("x"),
+                        MoveY: el.data("y")
+                    }).then(function(game) {
+                        updateViewModel(game);
+                    }, function(err) {
+                        $("#error").text(err);
+                    });
+                }
+            }
+
+            function loadGame() {
+                hub.server.loadGame(id).then(function(game) {
+                    updateViewModel(game);
+
+                    if (game.PlayerX === userName) {
+                        $("#playerX").addClass("current_player");
+                    } else if (game.PlayerO === userName) {
+                        $("#playerO").addClass("current_player");
+                    }
+                });
+            }
+
+            function updateViewModel(game) {
+                vm.cells(game.Cells);
+                vm.playerX(game.PlayerX);
+                vm.playerO(game.PlayerO);
+                if (game.Winner) {
+                    vm.winner(game["Player" + game.Winner]);
+                }
+                if (game.Draw) {
+                    vm.draw(true);
+                }
+
+                move = game.Move;
+                isTurn = game.CurrentUserName === userName;
+                if (isTurn) {
+                    $("body").addClass("my-turn");
+                } else {
+                    $("body").removeClass("my-turn");
+                }
+            }
+
+            ko.applyBindings(vm);
+
+            hub.client.moveMade = function(game) {
+                if (game.Id == id) {
+                    updateViewModel(game);
+                }
+            };
+
+            $.connection.hub.start().done(loadGame);
+        });
+    </script>
+}

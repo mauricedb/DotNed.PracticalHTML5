@@ -1,0 +1,49 @@
+﻿@{
+    ViewBag.Title = "jqPlot";
+}
+<link href="~/Scripts/jqPlot/jquery.jqplot.css" rel="stylesheet" />
+<h2>jqPlot</h2>
+
+<div id="chart1" style="height: 480px; width: 90%;"></div>
+@section scripts
+{
+    <!--[if lt IE 9]>
+        <script src="/Scripts/jqPlot/excanvas.js"></script>
+    <![endif]-->
+    <script src="~/Scripts/jqPlot/jquery.jqplot.js"></script>
+    <script src="~/Scripts/jqPlot/plugins/jqplot.barRenderer.js"></script>
+    <script src="~/Scripts/jqPlot/plugins/jqplot.categoryAxisRenderer.js"></script>
+    <script src="~/Scripts/jqPlot/plugins/jqplot.pointLabels.js"></script>
+    <script>
+        $(function () {
+            $.getJSON("/Stats/Data", function (data) {
+                var win = $.map(data, function (user) { return user.Win; });
+                var lose = $.map(data, function (user) { return user.Lose; });
+                var draw = $.map(data, function (user) { return user.Draw; });
+                var players = $.map(data, function (user) { return user.Player; });
+
+                $.jqplot('chart1', [win, lose, draw], {
+                    seriesDefaults: {
+                        renderer: $.jqplot.BarRenderer,
+                        rendererOptions: { fillToZero: true }
+                    },
+                    series: [
+                        { label: 'Win' },
+                        { label: 'Lose' },
+                        { label: 'Draw' }
+                    ],
+                    legend: {
+                        show: true,
+                        placement: 'outsideGrid'
+                    },
+                    axes: {
+                        xaxis: {
+                            renderer: $.jqplot.CategoryAxisRenderer,
+                            ticks: players
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+}

@@ -1,0 +1,108 @@
+﻿@{
+    ViewBag.Title = "jqPlot";
+}
+<link href="~/Scripts/jqPlot/jquery.jqplot.css" rel="stylesheet" />
+<h2>jqPlot</h2>
+
+<div id="chart1" style="height: 480px; width: 90%;"></div>
+<button id="reload">Load data</button>
+<button id="refresh">Refresh chart</button>
+@section scripts
+{
+    <!--[if lt IE 9]>
+        <script src="/Scripts/jqPlot/excanvas.js"></script>
+    <![endif]-->
+    <script src="~/Scripts/jqPlot/jquery.jqplot.js"></script>
+    <script src="~/Scripts/jqPlot/plugins/jqplot.barRenderer.js"></script>
+    <script src="~/Scripts/jqPlot/plugins/jqplot.categoryAxisRenderer.js"></script>
+    <script src="~/Scripts/jqPlot/plugins/jqplot.pointLabels.js"></script>
+    <script src="~/Scripts/Lawnchair/Lawnchair.js"></script>
+    <script src="~/Scripts/Lawnchair/dom.js"></script>
+    <script src="~/Scripts/Lawnchair/indexed-db.js"></script>
+    <script src="~/Scripts/underscore.js"></script>
+    <script>
+        $(function() {
+
+            function displayChart(data) {
+                //var win = $.map(data, function (user) { return user.Win; });
+                //var lose = $.map(data, function (user) { return user.Lose; });
+                //var draw = $.map(data, function (user) { return user.Draw; });
+                //var players = $.map(data, function (user) { return user.Player; });
+                $('#chart1').empty();
+                $.jqplot('chart1', [data.win, data.lose, data.draw], {
+                    seriesDefaults: {
+                        renderer: $.jqplot.BarRenderer,
+                        rendererOptions: { fillToZero: true }
+                    },
+                    series: [
+                        { label: 'Win' },
+                        { label: 'Lose' },
+                        { label: 'Draw' }
+                    ],
+                    legend: {
+                        show: true,
+                        placement: 'outsideGrid'
+                    },
+                    axes: {
+                        xaxis: {
+                            renderer: $.jqplot.CategoryAxisRenderer,
+                            ticks: data.players
+                        }
+                    },
+                    noDataIndicator: {
+                        show: true,
+                        indicator: "No data to display, try loading some!"
+                    }
+                });
+            }
+
+            function loadData() {
+                var data = {
+                    players: [],
+                    win: [],
+                    lose: [],
+                    draw: []
+                };
+
+                var lawnchair = new Lawnchair(function () {
+                    var lazyDisplayChart = _.debounce(function () {
+                        displayChart(data);
+                    }, 10);
+                    lazyDisplayChart();
+
+                    this.each(function (record, index) {
+                        data.players.push(record.key);
+                        data.win.push(record.Win);
+                        data.lose.push(record.Lose);
+                        data.draw.push(record.Draw);
+
+                        lazyDisplayChart();
+                    });
+                });
+            }
+
+            function saveData(data) {
+                var lawnchair = new Lawnchair(function() {
+                    var db = this;
+                    db.nuke();
+                    $.each(data, function() {
+                        this.key = this.Player;
+                        db.save(this);
+                    });
+                });
+            }
+
+
+            $("#reload").click(function() {
+                $.getJSON("/Stats/Data", function(data) {
+                    saveData(data);
+                });
+            });
+
+            $("#refresh").click(function() {
+                loadData();
+            }).click();
+
+        });
+    </script>
+}

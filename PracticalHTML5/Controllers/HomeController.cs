@@ -1,32 +1,89 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 using System.Web.Mvc;
+using PracticalHTML5.Models;
+using PracticalHTML5.ViewModels;
 
 namespace PracticalHTML5.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController : RavenController
     {
+        private const string _gameControler = "SimpleGame";
+        //private const string _gameControler = "KOGame";
+        //private const string _gameControler = "SocketGame";
+
+
         public ActionResult Index()
         {
-            ViewBag.Message = "Modify this template to jump-start your ASP.NET MVC application.";
+            var games = DB.Query<TicTacToe>().OrderByDescending(g => g.StartedAt);
+            var model = new HomeIndexRequestViewModel
+            {
+                New = games.Where(g => string.IsNullOrEmpty(g.PlayerX)).ToList(),
+                Active = games.Where(g => !string.IsNullOrEmpty(g.PlayerX) && string.IsNullOrEmpty(g.Winner)).ToList(),
+                Finished = games.Where(g => !string.IsNullOrEmpty(g.Winner)).ToList(),
+                UserName = UserName
+            };
+            return View(model);
+        }
 
+
+        public ActionResult Create()
+        {
+            var model = new HomeCreateRequestViewModel
+            {
+                StartedAt = DateTime.Now,
+                PlayerO = UserName
+            };
+            return View(model);
+        }
+
+        [HttpPost]
+        public ActionResult Create(HomeCreateRequestViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var newGame = new TicTacToe
+                {
+                    StartedAt = model.StartedAt,
+                    PlayerO = model.PlayerO
+                };
+                newGame.Initialize(model.Size);
+
+
+                DB.Store(newGame);
+
+                UserName = newGame.PlayerO;
+
+                return RedirectToAction("Index");
+            }
             return View();
         }
 
-        public ActionResult About()
+        public ActionResult Accept(int id)
         {
-            ViewBag.Message = "Your app description page.";
+            return View(new { PlayerX = UserName });
+        }
 
+        [HttpPost]
+        public ActionResult Accept(int id, string playerX)
+        {
+            if (!string.IsNullOrEmpty(playerX))
+            {
+                var game = DB.Load<TicTacToe>(id);
+                game.PlayerX = playerX;
+                UserName = playerX;
+
+                return RedirectToAction("Play", _gameControler, new { id });
+            }
+
+            ModelState.AddModelError("PlayerX", "Name is required.");
             return View();
         }
 
-        public ActionResult Contact()
-        {
-            ViewBag.Message = "Your contact page.";
 
-            return View();
+        public ActionResult Play(int id)
+        {
+            return RedirectToAction("Play", _gameControler, new { id });
         }
     }
 }
