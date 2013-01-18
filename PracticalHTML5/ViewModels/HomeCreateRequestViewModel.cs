@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Web.Mvc;
 
@@ -14,8 +13,8 @@ namespace PracticalHTML5.ViewModels
 
         [Required]
         public string PlayerO { get; set; }
-        public DateTime StartedAt { get; set; }
+        public DateTime? StartedAt { get; set; }
         public SelectList Sizes { get; set; }
-        public int Size { get; set; }
+        public int? Size { get; set; }
     }
 }

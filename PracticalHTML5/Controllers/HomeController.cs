@@ -44,10 +44,10 @@ namespace PracticalHTML5.Controllers
             {
                 var newGame = new TicTacToe
                 {
-                    StartedAt = model.StartedAt,
+                    StartedAt = model.StartedAt ?? DateTime.Now,
                     PlayerO = model.PlayerO
                 };
-                newGame.Initialize(model.Size);
+                newGame.Initialize(model.Size ?? 3);
 
 
                 DB.Store(newGame);

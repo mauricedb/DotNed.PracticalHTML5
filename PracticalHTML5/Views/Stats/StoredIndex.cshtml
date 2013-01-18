@@ -24,10 +24,6 @@
         $(function() {
 
             function displayChart(data) {
-                //var win = $.map(data, function (user) { return user.Win; });
-                //var lose = $.map(data, function (user) { return user.Lose; });
-                //var draw = $.map(data, function (user) { return user.Draw; });
-                //var players = $.map(data, function (user) { return user.Player; });
                 $('#chart1').empty();
                 $.jqplot('chart1', [data.win, data.lose, data.draw], {
                     seriesDefaults: {
@@ -92,7 +88,6 @@
                 });
             }
 
-
             $("#reload").click(function() {
                 $.getJSON("/Stats/Data", function(data) {
                     saveData(data);
@@ -102,7 +97,6 @@
             $("#refresh").click(function() {
                 loadData();
             }).click();
-
         });
     </script>
 }
