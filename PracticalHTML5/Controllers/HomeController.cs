@@ -8,9 +8,9 @@ namespace PracticalHTML5.Controllers
 {
     public class HomeController : RavenController
     {
-        private const string _gameControler = "SimpleGame";
+        //private const string _gameControler = "SimpleGame";
         //private const string _gameControler = "KOGame";
-        //private const string _gameControler = "SocketGame";
+        private const string _gameControler = "SocketGame";
 
 
         public ActionResult Index()
