@@ -39,7 +39,7 @@
 {
     @Scripts.Render("~/bundles/jqueryui")
 
-@*    <script src="/Scripts/jquery.ui.touch-punch.min.js"></script>*@
+    <script src="/Scripts/jquery.ui.touch-punch.min.js"></script>
 
     <script src="/Scripts/jquery.signalR-1.0.0-rc1.js"></script>
     <script src="/signalr/hubs"></script>
@@ -136,7 +136,7 @@
 
             $.connection.hub.start().done(loadGame);
 
-            //$(".drag-move").draggable().css("-ms-touch-action", "none");
+            $(".drag-move").draggable().css("-ms-touch-action", "none");
         });
     </script>
 }
