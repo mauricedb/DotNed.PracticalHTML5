@@ -7,8 +7,8 @@ namespace PracticalHTML5.Controllers
 {
     public class StatsController : RavenController
     {
-        private const string _viewName = "Index";
-        //private const string _viewName = "StoredIndex";
+        //private const string _viewName = "Index";
+        private const string _viewName = "StoredIndex";
 
         public ActionResult Index()
         {
